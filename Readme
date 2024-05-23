@@ -1,0 +1,153 @@
+## World Health Data Visualization Project
+
+### Abstract
+**Money, Jobs, and Long Life: A Quick Look Around the World**
+
+Using a world map, we took a closer look at different countries to see if more money means longer lives. First, our map showed how old people usually get in different places. It seemed like countries with more money had people living longer. But is money the only reason? We then checked things like how much countries spend on new ideas and how much they save. We found mixed results. For example, China saves a lot but isn't the richest. Lastly, we looked at unemployment over time for all countries. This gave us a sense of how many people have jobs in different years. In short, while money can hint at longer lives, jobs and other factors play a role too.
+
+### Visualizing the Evolution of Longevity
+**A Decade of Wealth-Life Expectancy Interplay**
+
+Spanning from 2003 to 2022, the heatmap titled "The Wealth-Life Expectancy Correlation: Prosperous Nations Tend to Live Longer" offers a vivid journey through time, capturing the intricate relationship between national prosperity and the health of its citizens. Each year is characterized by its unique palette, and as the slider progresses, the varying shades unfold a narrative of development, challenges, and transformation across the globe.
+
+### Key Visualizations and Insights
+
+1. **Life Expectancy vs. GDP Scatter Plot**
+   - **Question**: Is a nation's prosperity synonymous with the longevity of its citizens?
+   - **Visualization**: An interactive scatter plot comparing GDP with life expectancy to explore the relationship between economic health and overall well-being.
+   - **Interaction**: Use the "Select a year" dropdown to observe how this relationship has evolved over time. Highlight specific countries for detailed insights.
+
+2. **Comparative Overview of Key Economic Indicators (2003-2022)**
+   - **Indicators**: Health Expenditure, Research and Development (R&D) Expenditure, and Gross Savings (% of GDP).
+   - **Visualization**: Interactive bar charts to compare and contrast economic metrics over two decades for various nations.
+
+3. **Youth Unemployment Trends**
+   - **Question**: What do youth unemployment rates reveal about an economy's health and the prospects of its young workforce?
+   - **Visualization**: Line charts displaying youth unemployment trends across various countries over two decades.
+   - **Interaction**: Select specific countries or view all for a comprehensive analysis.
+
+### Setup Instructions
+
+To set up and run this project locally, follow these steps:
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/yourusername/World_Health_Data.git
+   cd World_Health_Data
+   ```
+
+2. **Install Dependencies**
+   Ensure you have Python and necessary libraries installed. You can install the required libraries using:
+   ```bash
+   pip install dash pandas plotly dash-bootstrap-components
+   ```
+
+3. **Run the Application**
+   Start the Dash application by running:
+   ```bash
+   python app.py
+   ```
+
+### Code Explanation
+
+#### Data Loading and Preprocessing
+
+The data is loaded from a CSV file and preprocessed to extract relevant columns for analysis.
+
+```python
+import pandas as pd
+
+df = pd.read_csv('/Users/simranjitvirk/Downloads/Project2/WHO_Asia_Cancer_with_Regions.csv')
+```
+
+#### Dash Application Setup
+
+The Dash application is initialized with Bootstrap for enhanced styling.
+
+```python
+import dash
+from dash import dcc, html
+import dash_bootstrap_components as dbc
+
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
+```
+
+#### Layout Definition
+
+The layout includes a header, introduction, dropdowns for region and cancer type selection, and a graph component.
+
+```python
+app.layout = html.Div([
+    html.H1("Cancer Impact in Asian Countries", style={'textAlign': 'center', 'color': '#007bff'}),
+    html.Div(id='introduction', children=[
+        dcc.Markdown("""
+            ###### Introduction:
+            This study addresses the profound health implications of cancer across Asia, identifying key trends and disparities by region. Using comprehensive data, we explore cancer mortality rates, healthcare access, and spending patterns to inform targeted strategies against this disease.
+            
+            ###### Visualization Aim:
+            Our interactive graphs offer insights into cancer prevalence by region and country, made possible with dropdown selectors. This visual tool aids stakeholders in pinpointing critical needs and prioritizing interventions.
+            
+            ###### Data Insights:
+            The `who_asia_cancer_data` set aggregates vital statistics, such as cancer-specific mortality, healthcare spending, and professional access, shedding light on the healthcare-cancer nexus.
+            
+            ###### Emerging Trends:
+            Preliminary findings reveal a strong link between health investment and cancer mortality rates, emphasizing the need for robust healthcare systems.
+            
+            ###### Conclusion:
+            Early data points to the pivotal role of healthcare investment in combating cancer, underlining that such commitments are key to improving outcomes, beyond the measure of national wealth.
+        """, style={'backgroundColor': '#f8f9fa', 'borderLeft': '5px solid #007bff', 'padding': '10px', 'margin': '10px 0px'}),
+    ]),
+    html.Div([
+        html.Label("Select a Region (Optional):"),
+        dcc.Dropdown(
+            id='region-dropdown',
+            options=[{'label': 'All', 'value': 'All'}] + [{'label': region, 'value': region} for region in df['Region'].unique()],
+            value='All'
+        ),
+    ]),
+    html.Div([
+        html.Label("Select a Cancer Type:"),
+        dcc.Dropdown(
+            id='cancer-type-dropdown',
+            options=[{'label': i, 'value': i} for i in df.columns if 'cancer' in i.lower()],
+            value='Breast_cancer_deaths_per_100_000_women'
+        ),
+    ]),
+    dcc.Graph(id='my-graph'),
+])
+```
+
+#### Callback for Interactive Graph
+
+The callback updates the graph based on the selected region and cancer type.
+
+```python
+from dash.dependencies import Input, Output
+import plotly.express as px
+
+@app.callback(
+    Output('my-graph', 'figure'),
+    [Input('region-dropdown', 'value'),
+     Input('cancer-type-dropdown', 'value')]
+)
+def update_figure(selected_region, selected_cancer):
+    if selected_region == 'All':
+        filtered_df = df
+    else:
+        filtered_df = df[df['Region'] == selected_region]
+
+    fig = px.bar(
+        filtered_df,
+        x='Country',
+        y=selected_cancer,
+        title=f"{selected_cancer} Rates in Asian Countries",
+        color='Country'
+    )
+    fig.update_layout(xaxis={'categoryorder':'total descending'})
+    return fig
+```
+
+### Conclusion
+
+This project provides an interactive visualization tool to understand the impact of cancer across Asian countries. By exploring various economic and health-related indicators, stakeholders can gain insights into critical areas that require intervention and strategize accordingly to improve public health outcomes.
